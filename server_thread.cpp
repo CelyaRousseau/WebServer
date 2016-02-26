@@ -7,6 +7,7 @@
 #include<unistd.h>
 #include<pthread.h>
 /*
+For compilation used g++ server_thread.cpp -std=c++11 -g -pthread -o Server -Wno-write-strings and test nc 127.0.0.1 8081 ! Good Luck !
 @author ImoucheG
 @date 15/01/2016
 @NB IMPORTANT The request is block in a infinity loop. I think that request waiting a connection close. 
@@ -92,15 +93,15 @@ void *socket_handler(void *socket_infos)
 	//Get client socket
 	int socket_client = *(int*)socket_infos;
 	//HTTP Response
-	char * response = "HTTP/1.1 200 OK\n"
-						"Date: Fri, 15 Jun 2016 15:01:04 GMT\n"
-						"Server: C++Socket/1.0\n"
-						"Last-Modified: Fri, 15 Jun 2016 15:01:04 GMT\n"
-						"Content-Type: text/html\n"
-						"Content-Length: 255\n"
-						"Accept-Ranges: bytes\n"
-						"Connection: close\n"
-						"\n"
+	char * response = "HTTP/1.1 200 OK\r\n"
+						"Date: Fri, 15 Jun 2016 15:01:04 GMT\r\n"
+						"Server: C++Socket/1.0\r\n"
+						"Last-Modified: Fri, 15 Jun 2016 15:01:04 GMT\r\n"
+						"Content-Type: text/html\r\n"
+						"Content-Length: 9999\r\n"
+						"Accept-Ranges: bytes\r\n"
+						"Connection: close\r\n"
+						"\r\n"
 						"<html><body><h1>Bravo Charlie !! Tu gère !!</h1></body></html>";
 	//Send response to client
 	send(socket_client, response, strlen(response), 0);
