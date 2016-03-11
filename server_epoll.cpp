@@ -9,142 +9,123 @@
 #include <sys/epoll.h>
 #include <errno.h>
 
-int SOMAXCONN = 3;
 int MAXEVENTS = 15;
-
-struct addrinfo {
-    int              ai_flags;
-    int              ai_family;
-    int              ai_socktype;
-    int              ai_protocol;
-    size_t           ai_addrlen;
-    struct sockaddr *ai_addr;
-    char            *ai_canonname;
-    struct addrinfo *ai_next;
-};
-
-typedef union epoll_data {
-    void        *ptr;
-    int          fd;
-    __uint32_t   u32;
-    __uint64_t   u64;
-} epoll_data_t;
-
-struct epoll_event {
-    __uint32_t   events; /* Epoll events */
-    epoll_data_t data;   /* User data variable */
-};
+int EPOLLCREATED = 1;
 
 // MAIN PART
 int main (int argc, char *argv[]){
-    int sfd, epollfd, s;
+    int sfd, epoll, s;
     struct epoll_event event;
     struct epoll_event *events;
 
-    if (argc != 2)
-    {
-        fprintf (stderr, "Usage: %s [port]\n", argv[0]);
-        return -1;
-    }
-
-    /* Bind the socket */
-    sfd = establish_bind(argv[0]);
-
-    // Set Socket in non blocking mode 
-    make_socket_non_blocking(sockfd);
-
-    // Listen for connection
-    if (listen(sockfd,SOMAXCONN) == -1) {
-        die("failed to listen for connections (errno=%d)",errno);
-    }
-
-    epollfd = epoll_create(2);
+    epoll = epoll_create(EPOLLCREATED);
 
     event.events = EPOLLIN;
     event.data.fd = listen_sock;
 
-    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, listen_sock, &event) == -1) {
-        perror("epoll_ctl: listen_sock");
-        return -1;
-    }
-
-    if (epollfd == -1)
-    {
-      perror ("epoll_create");
-      abort ();
-    }
-
     /* Buffer where events are returned */
-    events = calloc (MAXEVENTS, sizeof event);
+    events = calloc (MAXEVENTS, sizeof *event);
 
-    /*  Event loop */
-    while (1) {        
-    
+    /* The event loop */
+    while (true) {
+        int n, i;
+
+        n = epoll_wait (efd, events, MAXEVENTS, -1);
+
+        for (i = 0; i < n; i++) {
+            if ((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP) || (!(events[i].events & EPOLLIN))) {
+              /* An error has occured on this fd, or the socket is not
+               * ready for reading (why were we notified then?) */
+            fprintf (stderr, "epoll error. events=%u\n", events[i].events);
+            close (events[i].data.fd);
+            continue;
+            } else if (sfd == events[i].data.fd) {
+                /* We have a notification on the listening socket, which
+                * means one or more incoming connections. */
+                while (1) {
+                    struct sockaddr in_addr;
+                    socklen_t in_len;
+                    int infd;
+
+                    in_len = sizeof in_addr;
+                    infd = accept (sfd, &in_addr, &in_len);
+                    if (infd == -1) {
+                        printf("errno=%d, EAGAIN=%d, EWOULDBLOCK=%d\n", errno, EAGAIN, EWOULDBLOCK);
+                        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+                            /* We have processed all incoming connections. */
+                            printf ("processed all incoming connections.\n");
+                            break;
+                        } else {
+                            perror ("accept");
+                            break;
+                        }
+                    }
+
+                    /* Make the incoming socket non-blocking and add it to the
+                    * list of fds to monitor. */
+                    s = make_socket_non_blocking (infd);
+                    if (s == -1)
+                        abort ();
+
+                    event.data.fd = infd;
+                    event.events = EPOLLIN | EPOLLET;
+
+                    printf("set events %u, infd=%d\n", event.events, infd);
+                    s = epoll_ctl (efd, EPOLL_CTL_ADD, infd, &event);
+
+                    if (s == -1) {
+                        perror ("epoll_ctl");
+                        abort();
+                    }
+                }
+            } else {
+                /* We have data on the fd waiting to be read. Read and
+                * display it. We must read whatever data is available
+                * completely, as we are running in edge-triggered mode
+                * and won't get a notification again for the same
+                * data. */
+                int done = 0;
+
+                while (1) {
+                    ssize_t count;
+                    char buf[512];
+
+                    count = read (events[i].data.fd, buf, sizeof buf);
+                    if (count == -1) {
+                        /* If errno == EAGAIN, that means we have read all data. So go back to the main loop. */
+                        if (errno != EAGAIN) {
+                            perror ("read");
+                            done = 1;
+                        }
+                        break;
+                    } else if (count == 0) {
+                        /* End of file. The remote has closed the connection. */
+                        done = 1;
+                        break;
+                    }
+
+                    /* Write the reply to connection */
+                    s = write (events[i].data.fd, reply, sizeof(reply));
+
+                    if (s == -1) {
+                        perror ("write");
+                        abort();
+                    }
+                }
+
+                if (done) {
+                    printf ("Closed connection on descriptor %d\n", events[i].data.fd);
+
+                    /* Closing the descriptor will make epoll remove it from the set of descriptors which are monitored. */
+                    close (events[i].data.fd);
+                }
+            }
+        }
     }
 
-  free (events);
+    free (events);
 
-  close (sfd);
+    close (sfd);
+
+    return 0;
 }
-
-static int establish_bind (char *port) {
-
-    struct addrinfo hints;
-    struct addrinfo *result, *rp;
-    int out, sfd;
-
-    memset (&hints, 0, sizeof (struct addrinfo));
-    hints.ai_family = AF_UNSPEC;     /* Return IPv4 and IPv6 choices */
-    hints.ai_socktype = SOCK_STREAM; /* We want a TCP socket */
-    hints.ai_flags = AI_PASSIVE;     /* All interfaces */
-
-    /** 
-    * getaddrinfo() returns a list of address structures.
-    * Try each address until we successfully connect(2).
-    * If socket(2) (or connect(2)) fails, we (close the socket
-    * and) try the next address. 
-    **/
-    out = getaddrinfo(NULL, port, &hints, &result);
-
-    if(out != 0) {
-    fprintf (stderr, "getaddrinfo: %s\n", gai_strerror (out));
-    return -1;
-    }
-
-    for (rp = result; rp != NULL; rp = rp->ai_next) {
-        sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-   
-        if (connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1)
-          break; /* Success */
-
-        close(sfd);
-    }
-
-      if (rp == NULL)
-    {
-      fprintf (stderr, "Could not bind\n");
-      return -1;
-    }
-
-    freeaddrinfo (result);
-
-    return sfd;}}
-
-static int make_socket_non_blocking (int sockfd) {
-  int flags, s;
-
-  flags = fcntl (sockfd, F_GETFL, 0);
-  if (flags == -1)
-    {
-      perror ("fcntl");
-      return -1;
-    }
-
-  s = fcntl (sockfd, F_SETFL, O_NONBLOCK);
-  if (s == -1)
-    {
-      perror ("fcntl");
-      return -1;
-    }
-
-  return 0;}
