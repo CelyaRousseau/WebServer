@@ -87,3 +87,22 @@ string *basicSocket::ReadFile(string fileName){
 	string * ret = &content;
 	return ret;
 }
+
+int basicSocket::makeSocketUnblocked() {
+  int flags, s;
+
+  flags = fcntl (socket_infos, F_GETFL, 0);
+  if (flags == -1)
+    {
+      perror ("fcntl");
+      return -1;
+    }
+
+  s = fcntl (socket_infos, F_SETFL, O_NONBLOCK);
+  if (s == -1)
+    {
+      perror ("fcntl");
+      return -1;
+    }
+
+  return 0;}

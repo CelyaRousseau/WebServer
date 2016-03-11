@@ -6,6 +6,11 @@
 #include <fstream>
 #include <iostream>
 #include <unistd.h>
+#include <sys/types.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 
 using namespace std;
 
@@ -25,4 +30,5 @@ class basicSocket {
 		int sockAccept();
 		int getSocketClient();
 		void *socket_handler(void *socket_infos);
+		int makeSocketUnblocked();
 };

@@ -7,6 +7,7 @@ using namespace std;
 int main( int argc, const char* argv[] )
 {
 	basicSocket* mySock = new basicSocket();
+	//mySock->makeSocketUnblocked();
 
 	while (mySock->sockAccept()) {
 
