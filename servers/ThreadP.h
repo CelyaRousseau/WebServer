@@ -6,5 +6,6 @@ public:
 
 private:
 	basicSocket * mySock;
+	int message();
 
 }

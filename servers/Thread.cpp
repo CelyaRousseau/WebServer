@@ -1,7 +1,8 @@
 #include "Thread.h"
 
 void Thread::run(BasicSocket * mySock) {
-	cout << "Start thread server" << endl;
+	if(message()) return 0;
+
 	while (mySock->sockAccept()) {
 
 		if(mySock->getSocketClient() > 0) {
@@ -28,4 +29,12 @@ void Thread::run(BasicSocket * mySock) {
 		cout << "Connection handler is assigned" << endl;
 		} else cout << "Connection refused";
 	}
+}
+
+// set return state to 0 when code is implemented
+int Epoll::message() {
+	cout << "Start thread server" << endl;
+
+	//cout << "not yet implemented" << endl;
+	return 0;
 }
