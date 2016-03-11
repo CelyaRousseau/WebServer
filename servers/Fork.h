@@ -8,4 +8,4 @@ private:
 	basicSocket * mySock;
 	int message();
 
-}
+};

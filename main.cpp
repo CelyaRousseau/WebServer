@@ -1,6 +1,5 @@
 #include <iostream>           // std::cout
 #include <stdio.h>
-#include "basicSocket.cpp"
 #include "servers/Thread.h"
 #include "servers/ThreadP.h"
 #include "servers/Epoll.h"
@@ -15,24 +14,26 @@ int main( int argc, const char* argv[] )
 		// create socket
 		basicSocket* mySock = new basicSocket();
 
-		// thread server
-		if(argv[0] == "thread") {
-			Thread serv;
+		switch(argv[0]) {
+			case "thread":
+				// thread server
+				Thread serv;
+				break;
+			case "threadp":
+				ThreadP serv;
+				break;
+			case "fork":
+				Fork serv;
+				break;
+			case "epoll":
+				Epoll serv;
+				mySock->makeSocketUnblocked();
+				break;
+			default:
+				cout << "usage : <thread:epoll:threadp:fork" << endl;
+				return -1;
 		}
-		// thread pool server
-		else if(argv[0] == "threadp") {
-			ThreadP serv;
-		}
-		// epoll server
-		else if(argv[0] == "epoll") {
-			Epoll serv;
-			mySock.makeSocketUnblocked();
-		}
-		// fork server
-		else if(argv[0] == "fork") {
-			Fork serv;
-		}
-		else break;
+
 		serv.run(mySock);
 	}
 	cout << "usage : <thread:epoll:threadp:fork" << endl;

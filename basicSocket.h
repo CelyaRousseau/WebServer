@@ -1,3 +1,6 @@
+#ifndef BASICSOCK
+#define BASICSOCK
+
 #include <stdio.h>
 #include <string.h> 
 #include <stdlib.h>
@@ -32,3 +35,5 @@ class basicSocket {
 		void *socket_handler(void *socket_infos);
 		int makeSocketUnblocked();
 };
+
+#endif
