@@ -7,7 +7,9 @@
 #include <iostream>
 #include <unistd.h>
 
-class socket {
+using namespace std;
+
+class basicSocket {
 	private:
 		// Variables
 		int socket_infos;
@@ -15,11 +17,12 @@ class socket {
 		int c;
 		int *socket_new;
 		struct sockaddr_in server, client;
+		string *ReadFile(string fileName);
 
 	public:
-		socket();
-		void listen();
-		int accept();
+		basicSocket();
+		void sockListen();
+		int sockAccept();
 		int getSocketClient();
-		void *socket::socket_handler(void *socket_infos);
+		void *socket_handler(void *socket_infos);
 };

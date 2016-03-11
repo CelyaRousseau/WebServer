@@ -1,12 +1,17 @@
-#include "socket.h"
+#include "basicSocket.h"
+#include <string.h> 
 
-socket::socket() {
+//PORT
+#define SERVER_PORT 8081
+using namespace std;
+
+basicSocket::basicSocket() {
 	//Init description socket with addr, port, ...
 	socket_infos = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_infos == -1)
 	{
 		cout << "Can't read infos socket" << endl;
-		return -1;
+		exit(1);
 	}
 	cout << "Socket created" << endl;
 	//Init the informations of socket in server
@@ -17,12 +22,13 @@ socket::socket() {
 	if (bind(socket_infos, (struct sockaddr *)&server, sizeof(server)) < 0)
 	{
 		cout << "Error : Bind parameters failed." << endl;
-		return -1;
+		exit(1);
 	}
 	cout << "Bind success" << endl;
+	this->sockListen();
 }
 
-void socket::listen() {
+void basicSocket::sockListen() {
 	// Marks the socket referred to by sockfd as a passive socket, 
 	//that is, as a socket that will be used to accept incoming connection requests using accept
 	//The backlog argument defines the maximum length to which the queue of pending 
@@ -33,16 +39,16 @@ void socket::listen() {
 	c = sizeof(struct sockaddr_in);
 }
 
-int socket::accept() {
+int basicSocket::sockAccept() {
 	socket_client = accept(socket_infos, (struct sockaddr *)&client, (socklen_t*)&c);
 	return true;
 }
 
-int socket::getSocketClient() {
+int basicSocket::getSocketClient() {
 	return socket_client;
 }
 
-void *socket::socket_handler(void *socket_infos)
+void *basicSocket::socket_handler(void *socket_infos)
 {
 	//Get client socket
 	int socket_client = *(int*)socket_infos;
@@ -62,4 +68,22 @@ void *socket::socket_handler(void *socket_infos)
 	send(socket_client, response, strlen(response), 0);
 	//Free the socket pointer
 	free(socket_infos);
+}
+
+string *basicSocket::ReadFile(string fileName){
+	fstream file;
+	file.open(fileName,fstream::in);
+	string content;
+	if(file){
+		cout << "File is open" << endl;
+		string line;
+		while(getline(file,line)){
+			content = content + line;
+		}
+	}
+	else
+		cout << "Failed to open file" << endl;
+	file.close();
+	string * ret = &content;
+	return ret;
 }

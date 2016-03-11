@@ -1,16 +1,16 @@
 #include <iostream>           // std::cout
 #include <stdio.h>
-#include "socket.cpp"
+#include "basicSocket.cpp"
 
 using namespace std;
 
 int main( int argc, const char* argv[] )
 {
-	socket mySock = new socket();
+	basicSocket* mySock = new basicSocket();
 
-	while (mySock.accept()) {
+	while (mySock->sockAccept()) {
 
-		if(mySock.getSocketClient() > 0) {
+		if(mySock->getSocketClient() > 0) {
 			cout << "Connection accepted" << endl;
 
 
