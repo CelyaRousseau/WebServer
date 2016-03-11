@@ -1,5 +1,5 @@
 #include<stdio.h>
-#include<string.h> 
+#include<string.h>
 #include<stdlib.h>
 #include<sys/socket.h>
 #include<arpa/inet.h>
@@ -106,7 +106,10 @@ void *socket_handler(void *socket_infos)
 						"Content-Length: 9999\r\n"
 						"Accept-Ranges: bytes\r\n"
 						"Connection: close\r\n"
-						"\r\n" + *ReadFile("index.html");
+						"\r\n";
+	string fileContent = *ReadFile("index.html");
+	cout << fileContent << endl;
+	content += fileContent;
 	cout << content << endl;
 	char * response = (char*) content.c_str();
 	//Send response to client
@@ -121,17 +124,16 @@ void *socket_handler(void *socket_infos)
 string *ReadFile(string fileName){
 	fstream file;
 	file.open(fileName,fstream::in);
-	string content;
+	string *content;
 	if(file){
 		cout << "File is open" << endl;
 		string line;
 		while(getline(file,line)){
-			content = content + line;
+			content = *content + line;
 		}
 	}
 	else
 		cout << "Failed to open file" << endl;
 	file.close();
-	string * ret = &content;
-	return ret;
+	return content;
 }
