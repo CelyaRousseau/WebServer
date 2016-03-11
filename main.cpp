@@ -1,15 +1,42 @@
 #include <iostream>           // std::cout
 #include <stdio.h>
-#include "socket.cpp"
+#include "basicSocket.cpp"
 
 using namespace std;
 
 int main( int argc, const char* argv[] )
 {
-	if(argc == 2) {
-		std::string type = argv[1];
-		cout << "Vous avez demandé le type de serveur : " << type.c_str() << endl;
+	basicSocket* mySock = new basicSocket();
+
+	while (mySock->sockAccept()) {
+
+		if(mySock->getSocketClient() > 0) {
+			cout << "Connection accepted" << endl;
 
 
-	} else cout << "Indiquer le type de serveur désiré !" << endl;
+
+
+		/* Exemple with pthread
+
+		//Create socket for accept multi -client ijn server
+		pthread_t tsocket;
+		//Alloc memory
+		socket_new = (int*)malloc(1);
+		*socket_new = socket_client;
+		cout << "try to create handler" << endl;
+		//Create socket with socket_handler function
+		if (pthread_create(&tsocket, NULL, socket_handler, (void*)socket_new) < 0)
+		{
+			cout << "Can't create thread" << endl;
+			return -1;
+		}
+		else
+			cout << "Handler is create";
+		//Now join the thread , so that we dont terminate before the thread
+		pthread_join( tsocket , NULL);
+		cout << "Connection handler is assigned" << endl;
+
+		End Example */
+		} else cout << "Connection refused";
+	}
 }

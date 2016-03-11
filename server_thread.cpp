@@ -1,12 +1,12 @@
-#include<stdio.h>
-#include<string.h>
-#include<stdlib.h>
-#include<sys/socket.h>
-#include<arpa/inet.h>
-#include<fstream>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <fstream>
 #include <iostream>
-#include<unistd.h>
-#include<pthread.h>
+#include <unistd.h>
+#include <pthread.h>
 /*
 For compilation used g++ server_thread.cpp -std=c++11 -g -pthread -o Server -Wno-write-strings and test nc 127.0.0.1 8081 ! Good Luck !
 @author ImoucheG
