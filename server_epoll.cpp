@@ -34,14 +34,12 @@ int main (int argc, char *argv[]){
 
         for (i = 0; i < n; i++) {
             if ((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP) || (!(events[i].events & EPOLLIN))) {
-              /* An error has occured on this fd, or the socket is not
-               * ready for reading (why were we notified then?) */
-            fprintf (stderr, "epoll error. events=%u\n", events[i].events);
-            close (events[i].data.fd);
-            continue;
+                /* An error has occured on this fd, or the socket is not ready for reading (why were we notified then?) */
+                fprintf (stderr, "epoll error. events=%u\n", events[i].events);
+                close (events[i].data.fd);
+                continue;
             } else if (sfd == events[i].data.fd) {
-                /* We have a notification on the listening socket, which
-                * means one or more incoming connections. */
+                /* We have a notification on the listening socket, which means one or more incoming connections. */
                 while (1) {
                     struct sockaddr in_addr;
                     socklen_t in_len;
@@ -61,8 +59,7 @@ int main (int argc, char *argv[]){
                         }
                     }
 
-                    /* Make the incoming socket non-blocking and add it to the
-                    * list of fds to monitor. */
+                    /* Make the incoming socket non-blocking and add it to the list of fds to monitor. */
                     s = make_socket_non_blocking (infd);
                     if (s == -1)
                         abort ();
@@ -79,11 +76,10 @@ int main (int argc, char *argv[]){
                     }
                 }
             } else {
-                /* We have data on the fd waiting to be read. Read and
-                * display it. We must read whatever data is available
-                * completely, as we are running in edge-triggered mode
-                * and won't get a notification again for the same
-                * data. */
+                /* We have data on the fd waiting to be read. Read and display it. We must read whatever data is available
+                 * completely, as we are running in edge-triggered mode and won't get a notification again for the same data. 
+                 */
+
                 int done = 0;
 
                 while (1) {
@@ -91,12 +87,10 @@ int main (int argc, char *argv[]){
                     char buf[512];
 
                     count = read (events[i].data.fd, buf, sizeof buf);
-                    if (count == -1) {
+                    if (count == -1 && errno != EAGAIN) {
                         /* If errno == EAGAIN, that means we have read all data. So go back to the main loop. */
-                        if (errno != EAGAIN) {
-                            perror ("read");
-                            done = 1;
-                        }
+                        perror ("error during read");
+                        done = 1;
                         break;
                     } else if (count == 0) {
                         /* End of file. The remote has closed the connection. */
@@ -108,7 +102,7 @@ int main (int argc, char *argv[]){
                     s = write (events[i].data.fd, reply, sizeof(reply));
 
                     if (s == -1) {
-                        perror ("write");
+                        perror ("error during write");
                         abort();
                     }
                 }
