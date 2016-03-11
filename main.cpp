@@ -32,7 +32,10 @@ int main( int argc, const char* argv[] )
 		else if(argv[0] == "fork") {
 			Fork serv;
 		}
-		else break;
+		else {
+			cout << "usage : <thread:epoll:threadp:fork" << endl;
+			return 0;
+		}
 		serv.run(mySock);
 	}
 	cout << "usage : <thread:epoll:threadp:fork" << endl;

@@ -1,11 +1,3 @@
-#include "../basicSocket.h"
+class Thread : public Server {
 
-class Thread {
-public:
-	void run(basicSocket * mySock);
-
-private:
-	basicSocket * mySock;
-	int message();
-
-}
+};
