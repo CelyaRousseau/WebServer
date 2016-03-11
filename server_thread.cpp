@@ -3,6 +3,7 @@
 #include<stdlib.h>
 #include<sys/socket.h>
 #include<arpa/inet.h>
+#include<fstream>
 #include <iostream>
 #include<unistd.h>
 #include<pthread.h>
@@ -18,6 +19,7 @@ For compilation used g++ server_thread.cpp -std=c++11 -g -pthread -o Server -Wno
 using namespace std;
 //Pointer of function handler for the thread socket
 void *socket_handler(void *);
+string *ReadFile(string);
 /*
 @author ImoucheG
 @date 15/01/2016
@@ -66,12 +68,15 @@ int main()
 		//Alloc memory
 		socket_new = (int*)malloc(1);
 		*socket_new = socket_client;
+		cout << "try to create handler" << endl;
 		//Create socket with socket_handler function
 		if (pthread_create(&tsocket, NULL, socket_handler, (void*)socket_new) < 0)
 		{
 			cout << "Can't create thread" << endl;
 			return -1;
 		}
+		else
+			cout << "Handler is create";
 		//Now join the thread , so that we dont terminate before the thread
 		pthread_join( tsocket , NULL);
 		cout << "Connection handler is assigned" << endl;
@@ -93,7 +98,7 @@ void *socket_handler(void *socket_infos)
 	//Get client socket
 	int socket_client = *(int*)socket_infos;
 	//HTTP Response
-	char * response = "HTTP/1.1 200 OK\r\n"
+	string content =  "HTTP/1.1 200 OK\r\n"
 						"Date: Fri, 15 Jun 2016 15:01:04 GMT\r\n"
 						"Server: C++Socket/1.0\r\n"
 						"Last-Modified: Fri, 15 Jun 2016 15:01:04 GMT\r\n"
@@ -101,10 +106,32 @@ void *socket_handler(void *socket_infos)
 						"Content-Length: 9999\r\n"
 						"Accept-Ranges: bytes\r\n"
 						"Connection: close\r\n"
-						"\r\n"
-						"<html><body><h1>Bravo Charlie !! Tu gère !!</h1></body></html>";
+						"\r\n" + *ReadFile("index.html");
+	cout << content << endl;
+	char * response = (char*) content.c_str();
 	//Send response to client
 	send(socket_client, response, strlen(response), 0);
 	//Free the socket pointer
 	free(socket_infos);
+}
+////
+//Read a file
+//@author ImoucheG
+//@Date 11/03/2016
+string *ReadFile(string fileName){
+	fstream file;
+	file.open(fileName,fstream::in);
+	string content;
+	if(file){
+		cout << "File is open" << endl;
+		string line;
+		while(getline(file,line)){
+			content = content + line;
+		}
+	}
+	else
+		cout << "Failed to open file" << endl;
+	file.close();
+	string * ret = &content;
+	return ret;
 }
