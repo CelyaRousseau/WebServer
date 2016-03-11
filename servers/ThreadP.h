@@ -1,11 +1,2 @@
-#include "../basicSocket.h"
-
-class ThreadP {
-public:
-	void run(basicSocket * mySock);
-
-private:
-	basicSocket * mySock;
-	int message();
-
+class ThreadP : public Server {
 };

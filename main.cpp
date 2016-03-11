@@ -33,7 +33,6 @@ int main( int argc, const char* argv[] )
 				cout << "usage : <thread:epoll:threadp:fork" << endl;
 				return -1;
 		}
-
 		serv.run(mySock);
 	}
 	cout << "usage : <thread:epoll:threadp:fork" << endl;
