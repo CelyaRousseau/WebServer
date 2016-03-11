@@ -1,43 +1,40 @@
 #include <iostream>           // std::cout
 #include <stdio.h>
 #include "basicSocket.cpp"
+#include "servers/Thread.h"
+#include "servers/ThreadP.h"
+#include "servers/Epoll.h"
+#include "servers/Fork.h"
 
 using namespace std;
 
 int main( int argc, const char* argv[] )
 {
-	basicSocket* mySock = new basicSocket();
-	//mySock->makeSocketUnblocked();
+	// if server type is not missing
+	if(argc > 0) {
+		// create socket
+		basicSocket* mySock = new basicSocket();
 
-	while (mySock->sockAccept()) {
-
-		if(mySock->getSocketClient() > 0) {
-			cout << "Connection accepted" << endl;
-
-
-
-
-		/* Exemple with pthread
-
-		//Create socket for accept multi -client ijn server
-		pthread_t tsocket;
-		//Alloc memory
-		socket_new = (int*)malloc(1);
-		*socket_new = socket_client;
-		cout << "try to create handler" << endl;
-		//Create socket with socket_handler function
-		if (pthread_create(&tsocket, NULL, socket_handler, (void*)socket_new) < 0)
-		{
-			cout << "Can't create thread" << endl;
-			return -1;
+		// thread server
+		if(argv[0] == "thread") {
+			Thread serv;
 		}
-		else
-			cout << "Handler is create";
-		//Now join the thread , so that we dont terminate before the thread
-		pthread_join( tsocket , NULL);
-		cout << "Connection handler is assigned" << endl;
-
-		End Example */
-		} else cout << "Connection refused";
+		// thread pool server
+		else if(argv[0] == "threadp") {
+			ThreadP serv;
+		}
+		// epoll server
+		else if(argv[0] == "epoll") {
+			Epoll serv;
+			mySock.makeSocketUnblocked();
+		}
+		// fork server
+		else if(argv[0] == "fork") {
+			Fork serv;
+		}
+		else break;
+		serv.run(mySock);
 	}
+	cout << "usage : <thread:epoll:threadp:fork" << endl;
+	return 0;
 }
