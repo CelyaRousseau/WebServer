@@ -1,6 +1,6 @@
 #include "Thread.h"
 
-void Thread::run(BasicSocket * mySock) {
+int Thread::run(BasicSocket * mySock) {
 	if(message()) return 0;
 
 	while (mySock->sockAccept()) {
@@ -13,7 +13,7 @@ void Thread::run(BasicSocket * mySock) {
 		//Create socket for accept multi -client ijn server
 		pthread_t tsocket;
 		//Alloc memory
-		socket_new = (int*)malloc(1);
+		/*socket_new = (int*)malloc(1);
 		*socket_new = socket_client;
 		cout << "try to create handler" << endl;
 		//Create socket with socket_handler function
@@ -26,13 +26,13 @@ void Thread::run(BasicSocket * mySock) {
 			cout << "Handler is create";
 		//Now join the thread , so that we dont terminate before the thread
 		pthread_join( tsocket , NULL);
-		cout << "Connection handler is assigned" << endl;
+		cout << "Connection handler is assigned" << endl; */
 		} else cout << "Connection refused";
 	}
 }
 
 // set return state to 0 when code is implemented
-int Epoll::message() {
+int Thread::message() {
 	cout << "Start thread server" << endl;
 
 	//cout << "not yet implemented" << endl;

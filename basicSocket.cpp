@@ -1,11 +1,14 @@
-#include "basicSocket.h"
+#ifndef BASICSOCKCPP
+#define BASICSOCKCPP
+
+#include "BasicSocket.h"
 #include <string.h> 
 
 //PORT
 #define SERVER_PORT 8081
 using namespace std;
 
-basicSocket::basicSocket() {
+BasicSocket::BasicSocket() {
 	//Init description socket with addr, port, ...
 	socket_infos = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_infos == -1)
@@ -28,7 +31,7 @@ basicSocket::basicSocket() {
 	this->sockListen();
 }
 
-void basicSocket::sockListen() {
+void BasicSocket::sockListen() {
 	// Marks the socket referred to by sockfd as a passive socket, 
 	//that is, as a socket that will be used to accept incoming connection requests using accept
 	//The backlog argument defines the maximum length to which the queue of pending 
@@ -39,16 +42,16 @@ void basicSocket::sockListen() {
 	c = sizeof(struct sockaddr_in);
 }
 
-int basicSocket::sockAccept() {
+int BasicSocket::sockAccept() {
 	socket_client = accept(socket_infos, (struct sockaddr *)&client, (socklen_t*)&c);
 	return true;
 }
 
-int basicSocket::getSocketClient() {
+int BasicSocket::getSocketClient() {
 	return socket_client;
 }
 
-void *basicSocket::socket_handler(void *socket_infos)
+void *BasicSocket::socket_handler(void *socket_infos)
 {
 	//Get client socket
 	int socket_client = *(int*)socket_infos;
@@ -70,7 +73,7 @@ void *basicSocket::socket_handler(void *socket_infos)
 	free(socket_infos);
 }
 
-string *basicSocket::ReadFile(string fileName){
+string *BasicSocket::ReadFile(string fileName){
 	fstream file;
 	file.open(fileName,fstream::in);
 	string content;
@@ -88,7 +91,7 @@ string *basicSocket::ReadFile(string fileName){
 	return ret;
 }
 
-int basicSocket::makeSocketUnblocked() {
+int BasicSocket::makeSocketUnblocked() {
   int flags, s;
 
   flags = fcntl (socket_infos, F_GETFL, 0);
@@ -106,3 +109,5 @@ int basicSocket::makeSocketUnblocked() {
     }
 
   return 0;}
+
+  #endif

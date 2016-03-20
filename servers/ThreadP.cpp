@@ -1,6 +1,6 @@
 #include "ThreadP.h"
 
-void ThreadP::run(BasicSocket * mySock) {
+int ThreadP::run(BasicSocket * mySock) {
 	if(message()) return 0;
 	
 	while (mySock->sockAccept()) {
@@ -15,7 +15,7 @@ void ThreadP::run(BasicSocket * mySock) {
 }
 
 // set return state to 0 when code is implemented
-int Epoll::message() {
+int ThreadP::message() {
 	cout << "Start thread pool server" << endl;
 
 	cout << "not yet implemented" << endl;

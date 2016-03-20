@@ -17,7 +17,7 @@
 
 using namespace std;
 
-class basicSocket {
+class BasicSocket {
 	private:
 		// Variables
 		int socket_infos;
@@ -28,7 +28,7 @@ class basicSocket {
 		string *ReadFile(string fileName);
 
 	public:
-		basicSocket();
+		BasicSocket();
 		void sockListen();
 		int sockAccept();
 		int getSocketClient();

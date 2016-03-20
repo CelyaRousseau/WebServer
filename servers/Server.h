@@ -1,11 +1,17 @@
-#include "../basicSocket.h"
+#ifndef BASICSERVER
+#define BASICSERVER
+
+#include "../BasicSocket.h"
 
 class Server {
 public:
-	void run(basicSocket * mySock);
+	int run(BasicSocket * mySock);
 
 private:
-	basicSocket * mySock;
+	BasicSocket * mySock;
+protected:
 	int message();
 	
 };
+
+#endif

@@ -1,8 +1,9 @@
 #include "Epoll.h"
 
-void Epoll::run(BasicSocket * mySock) {
+int Epoll::run(BasicSocket * mySock) {
 	if(message()) return 0;
 
+	mySock->makeSocketUnblocked();
 	while (mySock->sockAccept()) {
 
 		if(mySock->getSocketClient() > 0) {
@@ -19,5 +20,6 @@ int Epoll::message() {
 	cout << "Start epoll server" << endl;
 
 	cout << "not yet implemented" << endl;
+	cout << flush ;
 	return 1;
 }

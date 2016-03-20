@@ -1,40 +1,35 @@
 #include <iostream>           // std::cout
 #include <stdio.h>
-#include "servers/Thread.h"
-#include "servers/ThreadP.h"
-#include "servers/Epoll.h"
-#include "servers/Fork.h"
+#include "BasicSocket.cpp"
+#include "servers/Server.cpp"
+#include "servers/Thread.cpp"
+#include "servers/ThreadP.cpp"
+#include "servers/Epoll.cpp"
+#include "servers/Fork.cpp"
 
 using namespace std;
 
-int main( int argc, const char* argv[] )
-{
+int main( int argc, const char* argv[] ) {
 	// if server type is not missing
-	if(argc > 0) {
-		// create socket
-		basicSocket* mySock = new basicSocket();
+	if(argc > 1) {
+		Server *serv;
+		string type = argv[1];
 
-		switch(argv[0]) {
-			case "thread":
-				// thread server
-				Thread serv;
-				break;
-			case "threadp":
-				ThreadP serv;
-				break;
-			case "fork":
-				Fork serv;
-				break;
-			case "epoll":
-				Epoll serv;
-				mySock->makeSocketUnblocked();
-				break;
-			default:
-				cout << "usage : <thread:epoll:threadp:fork" << endl;
-				return -1;
+		if(type == "thread") {
+		 	serv = new Thread(); 
+		} else if( type == "threadp") {
+			serv = new ThreadP();
+		} else if (type == "fork") {
+			serv = new Fork();
+		} else if (type == "epoll") {
+			serv = new Epoll();
+		} else {
+			cout << "usage : <thread:epoll:threadp:fork>" << endl;
+			return -1;
 		}
-		serv.run(mySock);
-	}
-	cout << "usage : <thread:epoll:threadp:fork" << endl;
+		BasicSocket* mySock = new BasicSocket();
+		serv->run(mySock);
+	} else
+		cout << "usage : <thread:epoll:threadp:fork>" << endl;
 	return 0;
 }
