@@ -5,12 +5,12 @@
 
 class Server {
 public:
-	int run(BasicSocket * mySock);
+	virtual int run(BasicSocket * mySock);
 
 private:
 	BasicSocket * mySock;
 protected:
-	int message();
+	virtual int message();
 	
 };
 
