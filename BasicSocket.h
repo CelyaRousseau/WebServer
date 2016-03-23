@@ -25,7 +25,7 @@ class BasicSocket {
 		int c;
 		int *socket_new;
 		struct sockaddr_in server, client;
-		string *ReadFile(string fileName);
+		string ReadFile(string fileName);
 
 	public:
 		BasicSocket();
@@ -34,6 +34,7 @@ class BasicSocket {
 		int getSocketClient();
 		void *socket_handler();
 		int makeSocketUnblocked();
+		void terminate();
 };
 
 #endif

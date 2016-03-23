@@ -28,6 +28,7 @@ int Thread::run(BasicSocket * mySock) {
 		pthread_join( tsocket , NULL);
 		cout << "Connection handler is assigned" << endl;
 		} else cout << "Connection refused" << endl;
+		mySock->terminate();
 	}
 }
 
