@@ -24,12 +24,12 @@ int main( int argc, const char* argv[] ) {
 		} else if (type == "epoll") {
 			serv = new Epoll();
 		} else {
-			cout << "usage : <thread:epoll:threadp:fork>" << endl;
+			cout << "usage : <epoll:fork:thread:threadp>" << endl;
 			return -1;
 		}
 		BasicSocket* mySock = new BasicSocket();
 		serv->run(mySock);
 	} else
-		cout << "usage : <thread:epoll:threadp:fork>" << endl;
+		cout << "usage : <epoll:fork:thread:threadp>" << endl;
 	return 0;
 }
