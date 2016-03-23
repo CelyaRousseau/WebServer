@@ -13,21 +13,22 @@ int Thread::run(BasicSocket * mySock) {
 		//Create socket for accept multi -client ijn server
 		pthread_t tsocket;
 		//Alloc memory
-		/*socket_new = (int*)malloc(1);
-		*socket_new = socket_client;
+//		int * socket_new = (int*)malloc(1);
+//		*socket_new = mySock->getSocketClient();
 		cout << "try to create handler" << endl;
 		//Create socket with socket_handler function
-		if (pthread_create(&tsocket, NULL, socket_handler, (void*)socket_new) < 0)
+		if (pthread_create(&tsocket, NULL, &runFunction, mySock) < 0)
 		{
 			cout << "Can't create thread" << endl;
 			return -1;
 		}
 		else
-			cout << "Handler is create";
+			cout << "Handler is create" << endl;
 		//Now join the thread , so that we dont terminate before the thread
 		pthread_join( tsocket , NULL);
-		cout << "Connection handler is assigned" << endl; */
-		} else cout << "Connection refused";
+		cout << "Connection handler is assigned" << endl;
+		} else cout << "Connection refused" << endl;
+		mySock->terminate();
 	}
 }
 
@@ -37,4 +38,8 @@ int Thread::message() {
 
 	//cout << "not yet implemented" << endl;
 	return 0;
+}
+
+void * Thread::runFunction(void * socket) {
+	((BasicSocket*)socket)->socket_handler();
 }

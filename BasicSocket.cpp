@@ -51,10 +51,10 @@ int BasicSocket::getSocketClient() {
 	return socket_client;
 }
 
-void *BasicSocket::socket_handler(void *socket_infos)
+void *BasicSocket::socket_handler()
 {
 	//Get client socket
-	int socket_client = *(int*)socket_infos;
+	//int socket_client = *(int*)socket_infos;
 	//HTTP Response
 	string content =  "HTTP/1.1 200 OK\r\n"
 						"Date: Fri, 15 Jun 2016 15:01:04 GMT\r\n"
@@ -64,31 +64,32 @@ void *BasicSocket::socket_handler(void *socket_infos)
 						"Content-Length: 9999\r\n"
 						"Accept-Ranges: bytes\r\n"
 						"Connection: close\r\n"
-						"\r\n" + *ReadFile("index.html");
+						"\r\n" + ReadFile("index.html");
 	cout << content << endl;
 	char * response = (char*) content.c_str();
 	//Send response to client
 	send(socket_client, response, strlen(response), 0);
-	//Free the socket pointer
-	free(socket_infos);
 }
 
-string *BasicSocket::ReadFile(string fileName){
-	fstream file;
+string BasicSocket::ReadFile(string fileName){
+	ifstream file;
 	file.open(fileName,fstream::in);
 	string content;
-	if(file){
-		cout << "File is open" << endl;
-		string line;
-		while(getline(file,line)){
-			content = content + line;
+	try {
+		if(file.is_open()){
+			cout << "File is open" << endl;
+			string line;
+			while(!file.eof()){
+				getline(file, line);
+				content = content + line;
+			}
 		}
+		else cout << "Failed to open file" << endl;
+	} catch (const std::bad_alloc&) {
+		cout << "bad alloc error" << endl;
 	}
-	else
-		cout << "Failed to open file" << endl;
 	file.close();
-	string * ret = &content;
-	return ret;
+	return content;
 }
 
 int BasicSocket::makeSocketUnblocked() {
@@ -109,5 +110,10 @@ int BasicSocket::makeSocketUnblocked() {
     }
 
   return 0;}
+
+void BasicSocket::terminate() {
+	shutdown(socket_client, SHUT_RDWR);
+}
+
 
   #endif
