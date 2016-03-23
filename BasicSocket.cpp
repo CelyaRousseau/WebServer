@@ -51,10 +51,10 @@ int BasicSocket::getSocketClient() {
 	return socket_client;
 }
 
-void *BasicSocket::socket_handler(void *socket_infos)
+void *BasicSocket::socket_handler()
 {
 	//Get client socket
-	int socket_client = *(int*)socket_infos;
+	//int socket_client = *(int*)socket_infos;
 	//HTTP Response
 	string content =  "HTTP/1.1 200 OK\r\n"
 						"Date: Fri, 15 Jun 2016 15:01:04 GMT\r\n"
@@ -69,15 +69,13 @@ void *BasicSocket::socket_handler(void *socket_infos)
 	char * response = (char*) content.c_str();
 	//Send response to client
 	send(socket_client, response, strlen(response), 0);
-	//Free the socket pointer
-	free(socket_infos);
 }
 
 string *BasicSocket::ReadFile(string fileName){
-	fstream file;
+	ifstream file;
 	file.open(fileName,fstream::in);
 	string content;
-	if(file){
+	if(file.is_open()){
 		cout << "File is open" << endl;
 		string line;
 		while(getline(file,line)){

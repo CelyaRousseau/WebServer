@@ -32,7 +32,7 @@ class BasicSocket {
 		void sockListen();
 		int sockAccept();
 		int getSocketClient();
-		void *socket_handler(void *socket_infos);
+		void *socket_handler();
 		int makeSocketUnblocked();
 };
 
