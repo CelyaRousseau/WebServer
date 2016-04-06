@@ -4,7 +4,7 @@
 #include "servers/Server.cpp"
 #include "servers/Thread.cpp"
 #include "servers/ThreadP.cpp"
-#include "servers/Epoll.cpp"
+//#include "servers/Epoll.cpp"
 #include "servers/Fork.cpp"
 
 using namespace std;
@@ -22,7 +22,7 @@ int main( int argc, const char* argv[] ) {
 		} else if (type == "fork") {
 			serv = new Fork();
 		} else if (type == "epoll") {
-			serv = new Epoll();
+//			serv = new Epoll();
 		} else {
 			cout << "usage : <epoll:fork:thread:threadp>" << endl;
 			return -1;
