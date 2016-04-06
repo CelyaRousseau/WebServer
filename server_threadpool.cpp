@@ -21,7 +21,7 @@ void threadpool_deallocate(threadpool *pool);
 threadpool *threadpool_init(){
 	threadpool *pool;
 	int i;
-	int thread = 0;
+	pthread_t thread;
 
 	// Allocation de la mémoire
 	pool = (threadpool *)malloc(sizeof(threadpool));
@@ -37,13 +37,17 @@ threadpool *threadpool_init(){
 
 	// Boucle d'initialisation des threads
 	for (i = 0; i < MAX_THREADS; i++)
-	{
+	{	log("Try create");
+		pthread_t temp;
+		pool->threads[i] = temp ;
 		// Création du thread
-		thread = pthread_create(&(pool->threads[i]), NULL, listen, (void*) pool);
-		if (thread != 0)
-		{
-			return NULL;
-		}
+		if(pthread_create(&pool->threads[i], NULL, &listen, pool) < 0)
+			{
+				cout << "Can't create thread" << endl;
+			}
+			else
+				cout << "Handler is create" << endl;
+		pthread_join( pool->threads[i] , NULL);
 	}
 
 	return pool;
@@ -54,16 +58,18 @@ static void *listen(void *thread_pool)
 	threadpool *pool = (threadpool *) thread_pool;
 	int connection;
 	char logbuff[200];
-
+	log("Listen");
 	while(true)
 	{
+		cout << "LOOP" << endl;
+		cout << pool->count << endl;
 		//pthread_mutex_lock(&(pool->lock));
 		while (pool->count == 0)
 		{
 			log("En attente de connexion");
 			pthread_cond_wait(&(pool->signal), &(pool->lock));
 		}
-
+		log("Passed");
 		// Récupération de la première connexion dans la queue
 		connection = pool->queue[pool->head];
 		pool->head += 1;
@@ -88,7 +94,7 @@ static void *listen(void *thread_pool)
 
 void *process_request(void *socket) {
 	char logbuff[300];
-	int sockfd = (int) socket;
+	int sockfd = (intptr_t) socket;
 
 	// Variables
 	long buffer_bytes;	// Number of bytes in the buffer
@@ -113,7 +119,7 @@ void *process_request(void *socket) {
 		}
 		pthread_exit(NULL);
 		return 0;
-	}
+		}
 
 	// Check for a valid request method is being used
 	if (!strncmp(buffer, "GET ", 4))
@@ -121,13 +127,13 @@ void *process_request(void *socket) {
 		// Log GET request, check formatting of request, call process method
 		log("Processing GET request");
 		log(logbuff);
-		write(socket, buffer, NULL);
+		write(sockfd, buffer, 100);
 		bzero(buffer, BUFFER_SIZE);
 		return 0;
 	}
 }
 
-int listen(int port){
+int create(int port){
 	static struct sockaddr_in server;
 
 	threadpool *pool;
@@ -168,6 +174,6 @@ int listen(int port){
 }
 
 int main (int argc, char *argv[]){
-	listen(DEFAULT_PORT);
+	create(DEFAULT_PORT);
 }
 
