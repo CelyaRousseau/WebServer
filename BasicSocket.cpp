@@ -5,7 +5,7 @@
 #include <string.h> 
 
 //PORT
-#define SERVER_PORT 8081
+#define SERVER_PORT 8082
 using namespace std;
 
 BasicSocket::BasicSocket() {
