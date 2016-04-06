@@ -65,7 +65,7 @@ void *BasicSocket::socket_handler()
 						"Accept-Ranges: bytes\r\n"
 						"Connection: close\r\n"
 						"\r\n" + ReadFile("index.html");
-	cout << content << endl;
+	//cout << content << endl;
 	char * response = (char*) content.c_str();
 	//Send response to client
 	send(socket_client, response, strlen(response), 0);
@@ -77,7 +77,7 @@ string BasicSocket::ReadFile(string fileName){
 	string content;
 	try {
 		if(file.is_open()){
-			cout << "File is open" << endl;
+			//cout << "File is open" << endl;
 			string line;
 			while(!file.eof()){
 				getline(file, line);
@@ -112,6 +112,7 @@ int BasicSocket::makeSocketUnblocked() {
   return 0;}
 
 void BasicSocket::terminate() {
+	cout << "Connection closed" << endl;
 	shutdown(socket_client, SHUT_RDWR);
 }
 

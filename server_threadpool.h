@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
-#include <string>
+#include <string.h>
+#include <strings.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/types.h>
@@ -14,12 +15,14 @@
 
 #define MAX_THREADS 10
 #define MAX_QUEUED 25
-#define DEFAULT_PORT 8484
+#define DEFAULT_PORT 8081
 #define SOCKET_ERROR 3
+#define BUFFER_SIZE 8096
 
 typedef struct threadpool threadpool;
 using namespace std;
 
-int listen(int);
+int create(int);
 void log(string);
 threadpool *threadpool_init();
+void *process_request(void*);
