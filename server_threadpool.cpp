@@ -60,6 +60,7 @@ static void *listen(void *thread_pool)
 		//pthread_mutex_lock(&(pool->lock));
 		while (pool->count == 0)
 		{
+			log("En attente de connexion");
 			pthread_cond_wait(&(pool->signal), &(pool->lock));
 		}
 
@@ -77,12 +78,53 @@ static void *listen(void *thread_pool)
 		//pthread_mutex_unlock(&(pool->thread_lock));
 
 		// Send the connection to the router for processing
-		//(*(router))((void*)connection);
+		(*(process_request))((void*)connection); 
 		cout << "test";
 	}
 
 	pthread_exit(NULL);
 	return NULL;
+}
+
+void *process_request(void *socket) {
+	char logbuff[300];
+	int sockfd = (int) socket;
+
+	// Variables
+	long buffer_bytes;	// Number of bytes in the buffer
+	static char buffer[BUFFER_SIZE + 1];	// Buffer to hold request string
+
+	// Receive the request information, place into buffer
+	buffer_bytes = recv(sockfd, buffer, BUFFER_SIZE, 0);
+
+
+	// Check that the request is not empty and that the BUFSIZE has not been exceeded
+	if (buffer_bytes <= 0 || buffer_bytes > BUFFER_SIZE)
+	{
+		// Log error, send error
+		if (buffer_bytes <= 0)
+		{
+			log("Buffer size is <= 0");
+		}
+
+		if (buffer_bytes > BUFFER_SIZE)
+		{
+			log("Buffer is larger than allowed buffer size");
+		}
+		pthread_exit(NULL);
+		return 0;
+	}
+
+	// Check for a valid request method is being used
+	if (!strncmp(buffer, "GET ", 4))
+	{
+		// Log GET request, check formatting of request, call process method
+		log("Processing GET request");
+		log(logbuff);
+		write(socket, buffer, NULL);
+		bzero(buffer, BUFFER_SIZE);
+		return 0;
+	}
 }
 
 int listen(int port){
