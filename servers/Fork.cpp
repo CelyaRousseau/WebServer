@@ -12,7 +12,6 @@ int Fork::run(BasicSocket * mySock) {
 
 			/* Create child process */
 			pid_t pid = fork();
-			cout << "pid:" << pid << endl;
 			if(pid < 0) {
 				cout << "Error with fork" << endl;
 		        }
