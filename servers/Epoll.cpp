@@ -212,7 +212,7 @@ void Epoll::run()
 		  const char* charFile = file.c_str();
 		  int index=0;
 		  while((index+1)*510 <= sizeof(charFile)) {
-			strncat(buf, charFile[0+index*510], 510*(index+1));
+			//strncat(buf, charFile[0+index*510], 510*(index+1));
 			s = write(1, buf, 510);
 			index++;
 		  }
