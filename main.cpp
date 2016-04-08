@@ -28,7 +28,9 @@ int main( int argc, const char* argv[] ) {
 			return -1;
 		}
 		BasicSocket* mySock = new BasicSocket();
-		serv->run(mySock);
+		if(type != "epoll")
+			serv->run(mySock);
+		else serv->run();
 	} else
 		cout << "usage : <epoll:fork:thread:threadp>" << endl;
 	return 0;

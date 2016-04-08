@@ -6,6 +6,7 @@
 class Server {
 public:
 	virtual int run(BasicSocket * mySock);
+	virtual void run();
 
 private:
 	BasicSocket * mySock;
