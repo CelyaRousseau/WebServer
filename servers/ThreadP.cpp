@@ -2,8 +2,8 @@
 
 int ThreadP::run(BasicSocket * mySock) {
 	if(message()) return 0;
-	this->threads = (pthread_t *) malloc(sizeof(pthread_t) * this->MAX_THREADS);
 	int i = 0;
+	this->threads = (pthread_t *) malloc(sizeof(pthread_t) * this->MAX_THREADS);
 	cout << "MAX THREAD = " << this->MAX_THREADS << endl;
 	for(i = 0; i <= this->MAX_THREADS; i++){
 		pthread_t thread;
@@ -35,7 +35,8 @@ int ThreadP::run(BasicSocket * mySock) {
 				//*socket_new = mySock->getSocketClient();
 				cout << "try to create handler" << endl;
 				//Create socket with socket_handler function
-				if (pthread_create(&this->threads[i], NULL, &runFunction, mySock) < 0)
+				void * tab[] = {mySock, &i, this->QUEUE};
+				if (pthread_create(&this->threads[i], NULL, &runFunction, tab) < 0)
 				{
 					cout << "Can't create thread" << endl;
 					return -1;
@@ -43,14 +44,14 @@ int ThreadP::run(BasicSocket * mySock) {
 				else
 					cout << "Handler is create" << endl;
 				//Now join the thread , so that we dont terminate before the thread
-				pthread_join( this->threads[i] , NULL);
+				//pthread_join( this->threads[i] , NULL);
 				cout << "Connection handler is assigned" << endl;
 			}else
                                 cout << "Full stack" << endl;
 			} else
 				cout << "Connection refused" << endl;
 			mySock->terminate();
-			this->QUEUE[i] = true;
+//			this->QUEUE[i] = true;
 		}
 }
 
@@ -61,6 +62,11 @@ int ThreadP::message() {
 	return 0;
 }
 
-void * ThreadP::runFunction(void * socket) {
-	((BasicSocket*)socket)->socket_handler();
+void * ThreadP::runFunction(void * info) {
+	cout << info << endl;
+	//BasicSocket* socket = static_cast<BasicSocket*>(info[0]);
+	//int ind = static_cast<int>(info[1]);
+	//bool * QUEUE = static_cast<bool*>(info[2]);
+	//socket->socket_handler();
+	//QUEUE[ind] = true;
 }
