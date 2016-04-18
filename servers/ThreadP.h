@@ -6,5 +6,5 @@ class ThreadP : public Server {
 	pthread_t* threads;
 	int run(BasicSocket * mySock);
 	int message();
-	static void * runFunction(void * info);
+	static void * runFunction(struct informations * info);
 };
