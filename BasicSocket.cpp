@@ -114,6 +114,7 @@ int BasicSocket::makeSocketUnblocked() {
 void BasicSocket::terminate() {
 	cout << "Connection closed" << endl;
 	shutdown(socket_client, SHUT_RDWR);
+	close(socket_client);
 }
 
 
