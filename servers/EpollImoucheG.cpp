@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <fstream>
+#include "EpollImoucheG.h"
 #include <stdlib.h>
 #include <iostream>
 #include <ctime>
@@ -11,46 +12,37 @@
 #include <fcntl.h>
 #include <sys/epoll.h>
 #include <errno.h>
-//Event max
-#define MAXEVENTS 64
 
 using namespace std;
-
-static int make_socket_non_blocking (int sfd)
-{
-  int flags, s;
-
-  flags = fcntl (sfd, F_GETFL, 0);
+// Create no-blocking socket
+int Epoll::CreateSocketNoBlock(){
+  int flags;
+  flags = fcntl (this->sfd, F_GETFL, 0);
   if (flags == -1)
     {
-      perror ("fcntl");
+      cout << "Error on no-blocking : fcntl " << endl;
       return -1;
     }
-
   flags |= O_NONBLOCK;
-  s = fcntl (sfd, F_SETFL, flags);
-  if (s == -1)
+  this->s = fcntl (this->sfd, F_SETFL, flags);
+  if (this->s == -1)
     {
-      perror ("fcntl");
+     cout << "Error on no-blocking : fcntl " << endl;
       return -1;
     }
-
   return 0;
 }
 
-static int create_and_bind (char *port)
-{
+ int Epoll::CreateBind(){
   struct addrinfo hints;
   struct addrinfo *result, *rp;
-  int s, sfd;
-
   memset (&hints, 0, sizeof (struct addrinfo));
   hints.ai_family = AF_UNSPEC;     /* Return IPv4 and IPv6 choices */
   hints.ai_socktype = SOCK_STREAM; /* We want a TCP socket */
   hints.ai_flags = AI_PASSIVE;     /* All interfaces */
 
-  s = getaddrinfo (NULL, port, &hints, &result);
-  if (s != 0)
+  this->s = getaddrinfo (NULL, this->PORTS, &hints, &result);
+  if (this->s != 0)
     {
       fprintf (stderr, "getaddrinfo: %s\n", gai_strerror (s));
       return -1;
@@ -58,18 +50,18 @@ static int create_and_bind (char *port)
 
   for (rp = result; rp != NULL; rp = rp->ai_next)
     {
-      sfd = socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-      if (sfd == -1)
+      this->sfd = socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+      if (this->sfd == -1)
         continue;
 
-      s = bind (sfd, rp->ai_addr, rp->ai_addrlen);
-      if (s == 0)
+      this->s = bind (this->sfd, rp->ai_addr, rp->ai_addrlen);
+      if (this->s == 0)
         {
           /* We managed to bind successfully! */
           break;
         }
 
-      close (sfd);
+      close (this->sfd);
     }
 
   if (rp == NULL)
@@ -80,76 +72,101 @@ static int create_and_bind (char *port)
 
   freeaddrinfo (result);
 
-  return sfd;
+  return this->sfd;
 }
+Epoll::Epoll(){
 
-int main (int argc, char *argv[])
+}
+Epoll::~Epoll(){
+  delete(this);
+}
+string Epoll::ReadFile(string fileName){
+              ifstream file;
+              file.open(fileName,fstream::in);
+              time_t now = time(0);
+              bool ret = 0;
+              string content = "HTTP/1.1 200 OK\r\n"
+                                "Date: " + string(ctime(&now)) +
+                                "Server: CAGJ/1.0\r\n"
+                                "Last-Modified: "+ string(ctime(&now)) +
+                                "Content-Type: text/html\r\n"
+                                "Content-Length: $LENGTHXX\r\n"
+                                "Accept-Ranges: bytes\r\n"
+                                "Connection: close\r\n"
+                                "\r\n";
+              try {
+                if(file.is_open()){
+                  //cout << "File is open" << endl;
+                  string line;
+                  while(!file.eof()){
+                    getline(file, line);
+                    content = content + line;
+                  }
+                  if(file.eof())
+                    ret =  1;
+                    }
+                else cout << "Failed to open file" << endl;
+              } catch (const std::bad_alloc&) {
+                cout << "bad alloc error" << endl;
+              }
+              file.close();
+              return content;
+}
+int Epoll::Run ()
 {
-  int sfd, s;
-  int efd;
-  struct epoll_event event;
-  struct epoll_event *events;
-
-  if (argc != 2)
-    {
-      fprintf (stderr, "Usage: %s [port]\n", argv[0]);
-      exit (EXIT_FAILURE);
-    }
-
-  sfd = create_and_bind (argv[1]);
-  if (sfd == -1)
+  this->sfd = this->CreateBind();
+  if (this->sfd == -1)
+    abort ();
+  this->s = this->CreateSocketNoBlock();
+  if (this->s == -1)
     abort ();
 
-  s = make_socket_non_blocking (sfd);
-  if (s == -1)
-    abort ();
-
-  s = listen (sfd, SOMAXCONN);
-  if (s == -1)
+  this->s = listen (this->sfd, SOMAXCONN);
+  if (this->s == -1)
     {
       perror ("listen");
       abort ();
     }
 
-  efd = epoll_create1 (0);
-  if (efd == -1)
+  this->efd = epoll_create1 (0);
+  if (this->efd == -1)
     {
       perror ("epoll_create");
       abort ();
     }
 
-  event.data.fd = sfd;
-  event.events = EPOLLIN | EPOLLET;
-  s = epoll_ctl (efd, EPOLL_CTL_ADD, sfd, &event);
-  if (s == -1)
+  this->event.data.fd = sfd;
+  this->event.events = EPOLLIN | EPOLLET;
+  this->s = epoll_ctl (this->efd, EPOLL_CTL_ADD, sfd, &this->event);
+  if (this->s == -1)
     {
       perror ("epoll_ctl");
       abort ();
     }
-  size_t sizeEvent = sizeof(event);
+  size_t sizeEvent = sizeof(this->event);
   /* Buffer where events are returned */
-  events = (epoll_event*)calloc (MAXEVENTS, sizeEvent);
+  this->events = (epoll_event*)calloc (MAXEVENTS, sizeEvent);
 
   /* The event loop */
   while (1)
     {
       int n, i;
 
-      n = epoll_wait (efd, events, MAXEVENTS, -1);
+      n = epoll_wait (this->efd, this->events, MAXEVENTS, -1);
       for (i = 0; i < n; i++)
 	{
-	  if ((events[i].events & EPOLLERR) ||
-              (events[i].events & EPOLLHUP) ||
-              (!(events[i].events & EPOLLIN)))
+	  if ((this->events[i].events & EPOLLERR) ||
+              (this->events[i].events & EPOLLHUP) ||
+              (!(this->events[i].events & EPOLLIN)))
 	    {
               /* An error has occured on this fd, or the socket is not
                  ready for reading (why were we notified then?) */
 	      fprintf (stderr, "epoll error\n");
-	      close (events[i].data.fd);
+	      close (this->events[i].data.fd);
 	      continue;
 	    }
 
-	  else if (sfd == events[i].data.fd)
+	  else if (this->sfd == this->events[i].data.fd)
 	    {
               /* We have a notification on the listening socket, which
                  means one or more incoming connections. */
@@ -157,11 +174,11 @@ int main (int argc, char *argv[])
                 {
                   struct sockaddr in_addr;
                   socklen_t in_len;
-                  int infd;
+                  int infd = this->sfd;
                   char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
 
                   in_len = sizeof in_addr;
-                  infd = accept (sfd, &in_addr, &in_len);
+                  infd = accept (this->sfd, &in_addr, &in_len);
                   if (infd == -1)
                     {
                       if ((errno == EAGAIN) ||
@@ -178,11 +195,11 @@ int main (int argc, char *argv[])
                         }
                     }
 
-                  s = getnameinfo (&in_addr, in_len,
+                  this->s = getnameinfo (&in_addr, in_len,
                                    hbuf, sizeof hbuf,
                                    sbuf, sizeof sbuf,
                                    NI_NUMERICHOST | NI_NUMERICSERV);
-                  if (s == 0)
+                  if (this->s == 0)
                     {
                       printf("Accepted connection on descriptor %d "
                              "(host=%s, port=%s)\n", infd, hbuf, sbuf);
@@ -190,14 +207,14 @@ int main (int argc, char *argv[])
 
                   /* Make the incoming socket non-blocking and add it to the
                      list of fds to monitor. */
-                  s = make_socket_non_blocking (infd);
-                  if (s == -1)
+                  this->s = CreateSocketNoBlock();
+                  if (this->s == -1)
                     abort ();
 
-                  event.data.fd = infd;
-                  event.events = EPOLLIN | EPOLLET;
-                  s = epoll_ctl (efd, EPOLL_CTL_ADD, infd, &event);
-                  if (s == -1)
+                  this->event.data.fd = infd;
+                  this->event.events = EPOLLIN | EPOLLET;
+                  this->s = epoll_ctl (this->efd, EPOLL_CTL_ADD, infd, &this->event);
+                  if (this->s == -1)
                     {
                       perror ("epoll_ctl");
                       abort ();
@@ -216,58 +233,31 @@ int main (int argc, char *argv[])
 	            ifstream file;
             	file.open("index.html",fstream::in);
               time_t now = time(0);
-            	string content = "HTTP/1.1 200 OK\r\n"
-                                "Date: " + string(ctime(&now)) +
-                                "Server: CAGJ/1.0\r\n"
-                                "Last-Modified: "+ string(ctime(&now)) +
-                                "Content-Type: text/html\r\n"
-                                "Content-Length: $LENGTHXX\r\n"
-                                "Accept-Ranges: bytes\r\n"
-                                "Connection: close\r\n"
-                                "\r\n";
-            	try {
-            		if(file.is_open()){
-            			//cout << "File is open" << endl;
-            			string line;
-            			while(!file.eof()){
-            				getline(file, line);
-            				content = content + line;
-            			}
-            			if(file.eof())
-                                      done = 1;
-            		}
-            		else cout << "Failed to open file" << endl;
-            	} catch (const std::bad_alloc&) {
-            		cout << "bad alloc error" << endl;
-            	}
-            	file.close();
+            	string content = this->ReadFile("index.html");
               size_t index = 0;
               string sizeContent = std::to_string(content.size());
               content.replace(content.find("$LENGTHXX",0), index + 9, sizeContent);
             	char * response = (char*) content.c_str();
-            	s = write(events[i].data.fd, response, strlen(response));
-            	if (s == -1) {
+            	this->s = write(this->events[i].data.fd, response, strlen(response));
+              done = 1;
+            	if (this->s == -1) {
                      perror ("write");
                      abort ();
               }
-              usleep(10000);
               if (done)
                 {
                   printf ("Closed connection on descriptor %d\n",
-                          events[i].data.fd);
+                          this->events[i].data.fd);
                   /* Closing the descriptor will make epoll remove it
                      from the set of descriptors which are monitored. */
-                    shutdown(events[i].data.fd, SHUT_RDWR);
-                    close (events[i].data.fd);
+                    shutdown(this->events[i].data.fd, SHUT_RDWR);
+                    close (this->events[i].data.fd);
                 }
             }
         }
     }
- cout << "close events" << endl;
-
-  free (events);
-
-  close (sfd);
+  free (this->events);
+  close (this->sfd);
 
   return EXIT_SUCCESS;
 }

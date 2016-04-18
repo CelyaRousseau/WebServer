@@ -4,7 +4,7 @@
 #include "servers/Server.cpp"
 #include "servers/Thread.cpp"
 #include "servers/ThreadP.cpp"
-#include "servers/Epoll.cpp"
+#include "servers/EpollImoucheG.cpp"
 #include "servers/Fork.cpp"
 
 using namespace std;
@@ -13,6 +13,8 @@ int main( int argc, const char* argv[] ) {
 	// if server type is not missing
 	if(argc > 1) {
 		Server *serv;
+		Epoll * epoll;
+		bool isEpoll = false;
 		string type = argv[1];
 
 		if(type == "thread") {
@@ -22,15 +24,17 @@ int main( int argc, const char* argv[] ) {
 		} else if (type == "fork") {
 			serv = new Fork();
 		} else if (type == "epoll") {
-			serv = new Epoll();
+			epoll = new Epoll();
+			isEpoll = true;
 		} else {
 			cout << "usage : <epoll:fork:thread:threadp>" << endl;
 			return -1;
 		}
-		BasicSocket* mySock = new BasicSocket();
-		if(type != "epoll")
-			serv->run(mySock);
-		else serv->run();
+		if(!isEpoll){
+			BasicSocket* mySock = new BasicSocket();
+			serv->run();
+		}else
+		 epoll->Run();
 	} else
 		cout << "usage : <epoll:fork:thread:threadp>" << endl;
 	return 0;
