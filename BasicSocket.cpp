@@ -1,8 +1,8 @@
 #ifndef BASICSOCKCPP
 #define BASICSOCKCPP
-
+#include <ctime>
 #include "BasicSocket.h"
-#include <string.h> 
+#include <string.h>
 
 //PORT
 #define SERVER_PORT 8081
@@ -56,16 +56,20 @@ void *BasicSocket::socket_handler()
 	//Get client socket
 	//int socket_client = *(int*)socket_infos;
 	//HTTP Response
+	time_t now = time(0);
 	string content =  "HTTP/1.1 200 OK\r\n"
-						"Date: Fri, 15 Jun 2016 15:01:04 GMT\r\n"
-						"Server: C++Socket/1.0\r\n"
-						"Last-Modified: Fri, 15 Jun 2016 15:01:04 GMT\r\n"
+						"Date: " + string(ctime(&now)) +
+						"Server: CAGJ/1.0\r\n"
+						"Last-Modified: "+ string(ctime(&now)) +
 						"Content-Type: text/html\r\n"
-						"Content-Length: 9999\r\n"
+						"Content-Length: $LENGTHXX\r\n"
 						"Accept-Ranges: bytes\r\n"
 						"Connection: close\r\n"
 						"\r\n" + ReadFile("index.html");
-	//cout << content << endl;
+	size_t index = 0;
+	string sizeContent = std::to_string(content.size());
+	content.replace(content.find("$LENGTHXX",0), index + 9, sizeContent);
+	cout << content << endl;
 	char * response = (char*) content.c_str();
 	//Send response to client
 	send(socket_client, response, strlen(response), 0);
