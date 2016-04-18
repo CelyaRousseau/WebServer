@@ -1,11 +1,11 @@
 #include "ThreadP.h"
-typedef struct informations {
+static struct informations {
 	int index;
 	BasicSocket * mysocket;
 	bool *QUEUE;
 } informations;
 int ThreadP::run(BasicSocket * mySock) {
-	struct informations  * infos = (informations*)malloc(sizeof(informations));
+	struct informations  * infos;
 	infos->index = 0;
 	infos->mysocket = mySock;
 	if(message()) return 0;
@@ -19,11 +19,11 @@ int ThreadP::run(BasicSocket * mySock) {
 	}
 	infos->QUEUE = this->QUEUE;
 	infos->index = 0;
-	while (infos->mysocket->sockAccept()) {
+	while (mySock->sockAccept()) {
 		infos->index = 0;
 		cout << "Iteration GENERAL = " << infos->index << endl;
 		bool freeThread = false;
-		if(infos->mysocket->getSocketClient() > 0) {
+		if(mySock->getSocketClient() > 0) {
 			while(infos->index <= this->MAX_THREADS || !freeThread){
                         	cout << "Iteration check free = " << infos->index << endl;
 				if(infos->QUEUE[infos->index] == true){
@@ -43,9 +43,7 @@ int ThreadP::run(BasicSocket * mySock) {
 				//*socket_new = mySock->getSocketClient();
 				cout << "try to create handler" << endl;
 				//Create socket with socket_handler function
-				void * tab;
-				cout << infos->index << endl;
-				if (pthread_create(&this->threads[infos->index], NULL, &runFunction, infos) < 0)
+				if (pthread_create(&this->threads[infos->index], NULL, &runFunction, void*)infos) < 0)
 				{
 					cout << "Can't create thread" << endl;
 					return -1;
@@ -59,7 +57,7 @@ int ThreadP::run(BasicSocket * mySock) {
                                 cout << "Full stack" << endl;
 			} else
 				cout << "Connection refused" << endl;
-			//infos->mysocket->terminate();
+			mySock->terminate();
 //			this->QUEUE[i] = true;
 		}
 }
@@ -71,11 +69,11 @@ int ThreadP::message() {
 	return 0;
 }
 
-void * ThreadP::runFunction(void * infos) {
-	//struct informations prout = (struct informations)infos;
-	struct informations * infosCast = ((struct informations *) infos);
-	cout << "ID : "  << infosCast->index <<endl << "########################################" << endl;
-	infosCast->mysocket->socket_handler();
-	infosCast->mysocket->terminate();
-	infosCast->QUEUE[infosCast->index] = true;
+void * ThreadP::runFunction(struct informations * infos) {
+	cout << infos << endl;
+	//BasicSocket* socket = static_cast<BasicSocket*>(info[0]);
+	//int ind = static_cast<int>(info[1]);
+	//bool * QUEUE = static_cast<bool*>(info[2]);
+	//socket->socket_handler();
+	//QUEUE[ind] = true;
 }
