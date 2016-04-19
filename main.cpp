@@ -32,7 +32,7 @@ int main( int argc, const char* argv[] ) {
 		}
 		if(!isEpoll){
 			BasicSocket* mySock = new BasicSocket();
-			serv->run();
+			serv->run(mySock);
 		}else
 		 epoll->Run();
 	} else

@@ -1,6 +1,7 @@
 #ifndef BASICSOCKCPP
 #define BASICSOCKCPP
 #include <ctime>
+#include <sstream>
 #include "BasicSocket.h"
 #include <string.h>
 
@@ -56,6 +57,22 @@ void *BasicSocket::socket_handler()
 	//Get client socket
 	//int socket_client = *(int*)socket_infos;
 	//HTTP Response
+	size_t index = 0;
+	string line;
+	ssize_t count;
+	char buf[512];
+  	count = read (socket_client, buf, sizeof buf);
+	              /* We have data on the fd waiting to be read. Read and
+	                 display it. We must read whatever data is available
+	                 completely, as we are running in edge-triggered mode
+	                 and won't get a notification again for the same
+	                 data. */
+	string header = string(buf);
+	istringstream f(header);
+ 	getline(f, line);
+	line.replace(line.find("HTTP",0) - 1, sizeof(line) + 1, "");
+	line.replace(line.find("GET",0), index + 5, "");
+	line[sizeof(line) + 2] = 0;
 	time_t now = time(0);
 	string content =  "HTTP/1.1 200 OK\r\n"
 						"Date: " + string(ctime(&now)) +
@@ -65,8 +82,8 @@ void *BasicSocket::socket_handler()
 						"Content-Length: $LENGTHXX\r\n"
 						"Accept-Ranges: bytes\r\n"
 						"Connection: close\r\n"
-						"\r\n" + ReadFile("index.html");
-	size_t index = 0;
+						"\r\n" + ReadFile(line);
+	index = 0;
 	string sizeContent = std::to_string(content.size());
 	content.replace(content.find("$LENGTHXX",0), index + 9, sizeContent);
 	cout << content << endl;
@@ -88,7 +105,21 @@ string BasicSocket::ReadFile(string fileName){
 				content = content + line;
 			}
 		}
-		else cout << "Failed to open file" << endl;
+		else{
+		 cout << "Failed to open file, try to index" << endl;
+		 file.open("index.html",fstream::in);
+		 if(file.is_open()){
+			//cout << "File is open" << endl;
+			string line;
+			while(!file.eof()){
+				getline(file, line);
+				content = content + line;
+			}
+		}
+		else{
+		 cout << "Failed to open file index" << endl;
+		}
+		}
 	} catch (const std::bad_alloc&) {
 		cout << "bad alloc error" << endl;
 	}

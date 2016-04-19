@@ -96,7 +96,23 @@ string Epoll::ReadFile(string fileName){
         if(file.eof())
             ret =  1;
         }
-        else cout << "Failed to open file" << endl;
+        else{
+         cout << "Failed to open file, try with index" << endl;
+         file.open("index.html",fstream::in);
+         if(file.is_open()){
+            cout << "File is open" << endl;
+            string line;
+            while(!file.eof()){
+                getline(file, line);
+                content = content + line;
+            }
+        if(file.eof())
+            ret =  1;
+        }
+        else{
+         cout << "Failed to open file index" << endl;
+     	}
+     }
            } catch (const std::bad_alloc&) {
               cout << "bad alloc error" << endl;
         }
