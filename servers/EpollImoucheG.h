@@ -17,6 +17,7 @@ class Epoll  {
 		int CreateSocketNoBlock();
 		int CreateBind();
 		int Run();
+		void Terminate();
 		string ReadFile(string fileName);
 		int MAXEVENTS = 64;
 		char  *PORTS = "8081";
