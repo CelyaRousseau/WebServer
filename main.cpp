@@ -4,7 +4,7 @@
 #include "servers/Server.cpp"
 #include "servers/Thread.cpp"
 #include "servers/ThreadP.cpp"
-#include "servers/EpollImoucheG.cpp"
+#include "servers/Epoll.cpp"
 #include "servers/Fork.cpp"
 
 using namespace std;
